@@ -9,34 +9,54 @@
 // #else
     // macOS code goes here
 #endif
-
+#define FILE_PATH = "etc/shadows"
 
 char* readFile(char* filename){
-   char ch, file_name[25];
-   FILE *fp;
+    printf("Runnuing ->readFile...\n");
 
-   printf("Enter name of a file you wish to see\n");
-   gets(file_name);
+    char ch;
+    char* toReturn = 0;
+    FILE *fp;
+    fp = fopen(filename, "r"); // read mode
 
-   fp = fopen(file_name, "r"); // read mode
+    if (fp == NULL)
+    {
+        perror("\nError while opening the file.\n");
+        exit(EXIT_FAILURE);
+    }
 
-   if (fp == NULL)
-   {
-      perror("Error while opening the file.\n");
-      exit(EXIT_FAILURE);
-   }
+    // calculate total file length
+    fseek (fp, 0, SEEK_END);
+    long length = ftell (fp);
+    fseek (fp, 0, SEEK_SET);
 
-   printf("The contents of %s file are:\n", file_name);
+    // make new string with file length
+    toReturn = malloc (length);
+    int c = 0;
+    if (toReturn)
+    {
+        while((ch = fgetc(fp)) != EOF)
+            toReturn[c++] = ch;
+    }
 
-   while((ch = fgetc(fp)) != EOF)
-      printf("%c", ch);
-
-   fclose(fp);
+    fclose(fp);
+    return toReturn;
 }
 
 
-char* extractHashedPassword(){
+char* extractHashedPassword(char user_name[25]){
+    printf("Runnuing ->extractHasedPassword...\n");
+    // read all file data
+    char* file_details = readFile("/etc/shadow");
+    
+    printf("%s", file_details);
+    // loop over data
+    // read line by line anc comapre
 
+    // if line matches user_name, extract password
+    // return hashed password
+
+    // return null if not found
 }
 
 
@@ -44,13 +64,17 @@ int main(void)
 {
     // a password string we'll randomly guess
     char id[] = "mpiuser";
+    char user_name[25];
 
     // a random string?
     char salt[] = "$6$4GfdWqHx$";
     char *encrypted = crypt(id, salt);
-    printf("%s\n",encrypted);
+    // printf("%s\n",encrypted);
 
     // input username
+    printf("Enter username\n");
+    fgets(user_name, 25, stdin);
 
     // get hased password from file
+    extractHashedPassword(user_name);
 }
