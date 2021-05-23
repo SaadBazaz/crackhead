@@ -3,10 +3,10 @@ Simple password cracker
 
 ## How to run
 ### macOS (Asli + Nakli)
-```g++ ./crackhead_serial.c```
+```gcc ./crackhead_serial.c```
 
 ### Linux
-```g++ -lcrypt ./crackhead_serial.c```
+```gcc -lcrypt ./crackhead_serial.c```
 
 ## Resources
 
