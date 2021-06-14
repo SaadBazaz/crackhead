@@ -87,37 +87,6 @@ char* extractHashedPassword(char* user_name){
         }
         token = strtok(NULL, ":");
     }
-
-
-    // while (file_details[file_counter] != NULL) {
-    //     temp_counter = 0;
-    //     name_array = (char*)malloc(256*sizeof(char));
-
-    //     name_array[temp_counter] = file_details[file_counter];
-    //     temp_counter += 1;
-    //     file_counter += 1;
-    //     printf("%c", name_array[temp_counter-1]);
-    //     if (name_array[temp_counter] == ':'){
-    //         printf(name_array);
-    //         name_array[5] = '\0';
-    //         printf(name_array);
-
-    //         int is_same = cmp_str(user_name, name_array);
-    //         printf("SHUGAL MELA: %i\n", is_same);
-    //         return NULL;
-
-    //         if (is_same == 1){
-    //             temp_counter = 0;
-    //             file_counter += 1;
-    //             while(file_details[file_counter] != ':')
-    //                 password[temp_counter++] = file_details[file_counter++];
-                
-    //             return password;
-    //         } 
-    //         else temp_counter = 0;
-    //     }
-    // }
-    // return NULL;
 }
 
 
