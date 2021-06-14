@@ -48,19 +48,36 @@ char* readFile(char* filename){
 }
 
 
-int cmp_str(char* array1, char* array2){
-    // printf("Comparing:%s-%s-%li-%li\n", array1, array2, strlen(array1), strlen(array2));
-    int s = strlen(array1);
-    for (int i=0; i < s; i++){
-        // printf("%i\n", array1[i] != '\n');
-        if (array1[i] != '\n'){
-            if (array1[i] != array2[i]){
-                return 0;
-            }
+/* Function to print permutations of string
+   This function takes three parameters:
+   1. String
+   2. Starting index of the string
+   3. Ending index of the string. */
+void permute(char* a, int l, int r)
+{
+    int i;
+    if (l == r)
+        printf("%s\n", a);
+    else {
+        for (i = l; i <= r; i++) {
+            swap((a + l), (a + i));
+            permute(a, l + 1, r);
+            swap((a + l), (a + i)); // backtrack
         }
     }
-    return 1;
 }
+
+
+void crack_password(char* password){
+    // generate alphabets array
+    char alphabets[26];
+    for(int i = 0; i < 26; i++){
+        alphabets[i] = 97 + i;
+    }
+
+    permute(alphabets, 0, 26);
+}
+
 
 char* extractHashedPassword(char* user_name){
     printf("Running ->extractHasedPassword...\n");
@@ -75,7 +92,6 @@ char* extractHashedPassword(char* user_name){
 
     char* token = strtok(file_details, "\n");
     while (token) {
-    // token[strlen(token)] = '\0';
         token = token + '\0';
         int cc = 0;
         
