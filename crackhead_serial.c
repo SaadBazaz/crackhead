@@ -47,21 +47,42 @@ char* readFile(char* filename){
     return toReturn;
 }
 
+/* Function to swap values at two pointers */
+void swap(char* x, char* y)
+{
+    char temp;
+    temp = *x;
+    *x = *y;
+    *y = temp;
+}
 
 /* Function to print permutations of string
    This function takes three parameters:
    1. String
    2. Starting index of the string
    3. Ending index of the string. */
-void permute(char* a, int l, int r)
+void permute(char* a, int l, int r, char* password)
 {
     int i;
-    if (l == r)
-        printf("%s\n", a);
+    if (l == r){
+
+        if (strlen(a) < 8) {
+            // a random string?
+            char salt[] = "$6$NGWhf/sJZ2Jgxbch$";
+            char *encrypted = crypt(a, salt);
+
+            printf("Ans: %s, Encrypted: %s\n", a, encrypted);
+            if (strcmp(password, encrypted) == 0){
+                printf("FOUND IT\n");
+                exit(0);
+            }
+        }
+        // sleep(3);
+    }
     else {
         for (i = l; i <= r; i++) {
             swap((a + l), (a + i));
-            permute(a, l + 1, r);
+            permute(a, l + 1, r, password);
             swap((a + l), (a + i)); // backtrack
         }
     }
@@ -70,12 +91,13 @@ void permute(char* a, int l, int r)
 
 void crack_password(char* password){
     // generate alphabets array
-    char alphabets[26];
+    char alphabets[27];
     for(int i = 0; i < 26; i++){
         alphabets[i] = 97 + i;
     }
+    alphabets[26] = '\0';
 
-    permute(alphabets, 0, 26);
+    permute(alphabets, 0, 26, password);
 }
 
 
@@ -106,14 +128,17 @@ char* extractHashedPassword(char* user_name){
 }
 
 
+// usename: whisker
+// password: helloworl
+
 int main(void)
 {
     // a password string we'll randomly guess
-    char id[] = "mpiuser";
+    char id[] = "abcdefghijklmnopqrstuvwxyz";
     char* user_name = (char*)malloc(25*sizeof(char));
 
     // a random string?
-    char salt[] = "$6$4GfdWqHx$";
+    char salt[] = "$6$NGWhf/sJZ2Jgxbch$";
     char *encrypted = crypt(id, salt);
     // printf("%s\n",encrypted);
 
@@ -131,6 +156,9 @@ int main(void)
 
     // get hased password from file
     char* password = (extractHashedPassword(user_name));
-    printf("Password Mastiii: %s\n", password);
+    printf("Password Mastiii: %s\n<---------------------------------------------------->\n", password);
+
+    // get all permutations of alphabets
+    crack_password(password);
 }
 
