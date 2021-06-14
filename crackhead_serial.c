@@ -49,11 +49,10 @@ char* readFile(char* filename){
 
 
 int cmp_str(char* array1, char* array2){
-    printf("Comparing:%s-%s-%li-%li\n", array1, array2, strlen(array1), strlen(array2));
+    // printf("Comparing:%s-%s-%li-%li\n", array1, array2, strlen(array1), strlen(array2));
     int s = strlen(array1);
     for (int i=0; i < s; i++){
-        printf("HELLL\n");
-        printf("%i\n", array1[i] != '\n');
+        // printf("%i\n", array1[i] != '\n');
         if (array1[i] != '\n'){
             if (array1[i] != array2[i]){
                 return 0;
@@ -78,17 +77,14 @@ char* extractHashedPassword(char* user_name){
     while (token) {
     // token[strlen(token)] = '\0';
         token = token + '\0';
-        printf("%s-%s-%i-%li-%li\n", token, user_name, cmp_str(user_name, token), strlen(token), strlen(user_name));
-
-        if (strncmp(user_name, token, 6) == 0){
-            printf("Nigger");
+        int cc = 0;
+        
+        // printf("%s-%s-%i-%li-%li\n", token, "zohair", strcmp("\nzohair", token), strlen(token), strlen("\nzohair"));
+        if (strcmp(user_name, token) == 0){
+            token = strtok(NULL, ":");
+            // printf("Password Mastiii: %s\n", token);
+            return token;
         }
-
-        // if (cmp_str(user_name, token)){
-        //     token = strtok(NULL, ":");
-        //     printf("Password Mastiii: %s\n", token);
-        //     return token;
-        // }
         token = strtok(NULL, ":");
     }
 
@@ -140,13 +136,16 @@ int main(void)
     printf("Enter username\n");
     fgets(user_name, 25, stdin);
 
-
-    // user_name[strlen(user_name) - 1] = '\0';
- 
-    // printf("", strlen(user_name))
- 
-    // printf("2. %s----%li\n", user_name, strlen(user_name));
+    // add '\n' to user name for string matching (CHAPPI)
+    char temp;
+    for(int i = strlen(user_name) - 1; i > -1; i--){
+        user_name[i + 1] = user_name[i];
+    }
+    user_name[0] = '\n';
+    user_name[strlen(user_name) - 1] = '\0';
 
     // get hased password from file
-    (extractHashedPassword(user_name));
+    char* password = (extractHashedPassword(user_name));
+    printf("Password Mastiii: %s\n", password);
 }
+
