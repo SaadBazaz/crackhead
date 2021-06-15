@@ -144,6 +144,8 @@ MPI_Status status;
 
 int main(int argc, char** argv) {
 
+//   printf("mpiuser");
+
     // ------------------ Initial work
     // a password string we'll randomly guess
     char id[] = "abcdefghijklmnopqrstuvwxyz";
@@ -156,7 +158,7 @@ int main(int argc, char** argv) {
 
     // input username
     printf("Enter username\n");
-    fgets(user_name, 25, stdin);
+ //   fgets(user_name, 25, stdin);
 
     // add '\n' to user name for string matching (CHAPPI)
     char temp;
@@ -167,7 +169,7 @@ int main(int argc, char** argv) {
     user_name[strlen(user_name) - 1] = '\0';
 
     // get hased password from file
-    char* password = (extractHashedPassword(user_name));
+    char* password = (extractHashedPassword("\nmpiuser"));
     printf("Password Mastiii: %s\n<---------------------------------------------------->\n", password);
     // ------------------ Initial work
 
