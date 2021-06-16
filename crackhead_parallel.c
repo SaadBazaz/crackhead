@@ -121,20 +121,6 @@ void permute(char* a, int l, int r, char* password)
 }
 
 
-void crack_password(char* password){
-    // generate alphabets array
-    char alphabets[9];
-    for(int i = 0; i < 8; i++){
-        // alphabets[i] = 97 + i;
-        alphabets[i] = 97;
-    }
-    alphabets[8] = '\0';
-
-    // generate all permuatations
-    permute(alphabets, 0, 8 , password);
-}
-
-
 char* extractHashedPassword(char* user_name){
     printf("Running ->extractHasedPassword...\n");
     // read all file data
@@ -174,6 +160,110 @@ int check_password(char* asli_pass, char* nakli_pass, char* salt){
         exit(1);
     }
     return 0;
+}
+
+
+void crack_password(int start_offset, int a_size, char* temp_password, char* temp_salt){
+    // // generate alphabets array
+    // char alphabets[9];
+    // for(int i = 0; i < 8; i++){
+    //     // alphabets[i] = 97 + i;
+    //     alphabets[i] = 97;
+    // }
+    // alphabets[8] = '\0';
+
+    // // generate all permuatations
+    // permute(alphabets, 0, 8 , password);
+    char *password_combinations = (char*)malloc(8*sizeof(char));
+
+    for (int a = start_offset; a < start_offset + a_size; a++){
+        // printf("%c\n", a + 97);
+        
+        password_combinations[0] = a + 97;
+        password_combinations[1] = '\0';
+        check_password(temp_password, password_combinations, temp_salt);
+
+        for(int b=0; b < 26; b++){
+            // printf("%c%c\n", a + 97, b + 97);
+            
+            password_combinations[0] = a + 97;
+            password_combinations[1] = b + 97;
+            password_combinations[2] = '\0';
+            check_password(temp_password, password_combinations, temp_salt);
+
+            for(int c=0; c < 26; c++){
+                // printf("%c%c%c\n", a + 97, b + 97, c + 97);
+                password_combinations[0] = a + 97;
+                password_combinations[1] = b + 97;
+                password_combinations[2] = c + 97;
+                password_combinations[3] = '\0';
+                check_password(temp_password, password_combinations, temp_salt);
+                
+                for(int d=0; d < 26; d++){
+                        // printf("%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97);
+                        password_combinations[0] = a + 97;
+                        password_combinations[1] = b + 97;
+                        password_combinations[2] = c + 97;
+                        password_combinations[3] = d + 97;
+                        password_combinations[4] = '\0';
+                        check_password(temp_password, password_combinations, temp_salt);
+                        
+                    for(int e=0; e < 26; e++){
+                            // printf("%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97);
+                            password_combinations[0] = a + 97;
+                            password_combinations[1] = b + 97;
+                            password_combinations[2] = c + 97;
+                            password_combinations[3] = d + 97;
+                            password_combinations[4] = e + 97;
+                            password_combinations[5] = '\0';
+                            check_password(temp_password, password_combinations, temp_salt);
+                            
+                        for(int f=0; f < 26; f++){
+                                // printf("%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97);
+                                password_combinations[0] = a + 97;
+                                password_combinations[1] = b + 97;
+                                password_combinations[2] = c + 97;
+                                password_combinations[3] = d + 97;
+                                password_combinations[4] = e + 97;
+                                password_combinations[5] = f + 97;
+                                password_combinations[6] = '\0';
+                                check_password(temp_password, password_combinations, temp_salt);
+
+                            for(int g=0; g < 26; g++){
+                                    // printf("%c%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97, g + 97);
+                                    password_combinations[0] = a + 97;
+                                    password_combinations[1] = b + 97;
+                                    password_combinations[2] = c + 97;
+                                    password_combinations[3] = d + 97;
+                                    password_combinations[4] = e + 97;
+                                    password_combinations[5] = f + 97;
+                                    password_combinations[6] = g + 97;
+                                    password_combinations[7] = '\0';
+                                    check_password(temp_password, password_combinations, temp_salt);
+
+                                for(int h=0; h < 26; h++){
+                                    // printf("%c%c%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97, g + 97, h + 97);
+                                    password_combinations[0] = a + 97;
+                                    password_combinations[1] = b + 97;
+                                    password_combinations[2] = c + 97;
+                                    password_combinations[3] = d + 97;
+                                    password_combinations[4] = e + 97;
+                                    password_combinations[5] = f + 97;
+                                    password_combinations[6] = g + 97;
+                                    password_combinations[7] = h + 97;
+                                    password_combinations[8] = '\0';
+
+                                    check_password(temp_password, password_combinations, temp_salt);
+                                    // sleep(1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 
@@ -249,93 +339,95 @@ int main(int argc, char** argv) {
         }
 
         if (mod > 0) {
-            for (int a = start_offset; a < start_offset + a_size; a++){
-                // printf("%c\n", a + 97);
+
+            crack_password(start_offset, a_size, password, salt);
+            // for (int a = start_offset; a < start_offset + a_size; a++){
+            //     // printf("%c\n", a + 97);
                 
-                password_combinations[0] = a + 97;
-                password_combinations[1] = '\0';
-                check_password(password, password_combinations, salt);
+            //     password_combinations[0] = a + 97;
+            //     password_combinations[1] = '\0';
+            //     check_password(password, password_combinations, salt);
 
-                for(int b=0; b < 26; b++){
-                    // printf("%c%c\n", a + 97, b + 97);
+            //     for(int b=0; b < 26; b++){
+            //         // printf("%c%c\n", a + 97, b + 97);
                     
-                    password_combinations[0] = a + 97;
-                    password_combinations[1] = b + 97;
-                    password_combinations[2] = '\0';
-                    check_password(password, password_combinations, salt);
+            //         password_combinations[0] = a + 97;
+            //         password_combinations[1] = b + 97;
+            //         password_combinations[2] = '\0';
+            //         check_password(password, password_combinations, salt);
 
-                    for(int c=0; c < 26; c++){
-                        // printf("%c%c%c\n", a + 97, b + 97, c + 97);
-                        password_combinations[0] = a + 97;
-                        password_combinations[1] = b + 97;
-                        password_combinations[2] = c + 97;
-                        password_combinations[3] = '\0';
-                        check_password(password, password_combinations, salt);
+            //         for(int c=0; c < 26; c++){
+            //             // printf("%c%c%c\n", a + 97, b + 97, c + 97);
+            //             password_combinations[0] = a + 97;
+            //             password_combinations[1] = b + 97;
+            //             password_combinations[2] = c + 97;
+            //             password_combinations[3] = '\0';
+            //             check_password(password, password_combinations, salt);
                         
-                        for(int d=0; d < 26; d++){
-                                // printf("%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97);
-                                password_combinations[0] = a + 97;
-                                password_combinations[1] = b + 97;
-                                password_combinations[2] = c + 97;
-                                password_combinations[3] = d + 97;
-                                password_combinations[4] = '\0';
-                                check_password(password, password_combinations, salt);
+            //             for(int d=0; d < 26; d++){
+            //                     // printf("%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97);
+            //                     password_combinations[0] = a + 97;
+            //                     password_combinations[1] = b + 97;
+            //                     password_combinations[2] = c + 97;
+            //                     password_combinations[3] = d + 97;
+            //                     password_combinations[4] = '\0';
+            //                     check_password(password, password_combinations, salt);
                                 
-                            for(int e=0; e < 26; e++){
-                                    // printf("%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97);
-                                    password_combinations[0] = a + 97;
-                                    password_combinations[1] = b + 97;
-                                    password_combinations[2] = c + 97;
-                                    password_combinations[3] = d + 97;
-                                    password_combinations[4] = e + 97;
-                                    password_combinations[5] = '\0';
-                                    check_password(password, password_combinations, salt);
+            //                 for(int e=0; e < 26; e++){
+            //                         // printf("%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97);
+            //                         password_combinations[0] = a + 97;
+            //                         password_combinations[1] = b + 97;
+            //                         password_combinations[2] = c + 97;
+            //                         password_combinations[3] = d + 97;
+            //                         password_combinations[4] = e + 97;
+            //                         password_combinations[5] = '\0';
+            //                         check_password(password, password_combinations, salt);
                                     
-                                for(int f=0; f < 26; f++){
-                                        // printf("%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97);
-                                        password_combinations[0] = a + 97;
-                                        password_combinations[1] = b + 97;
-                                        password_combinations[2] = c + 97;
-                                        password_combinations[3] = d + 97;
-                                        password_combinations[4] = e + 97;
-                                        password_combinations[5] = f + 97;
-                                        password_combinations[6] = '\0';
-                                        check_password(password, password_combinations, salt);
+            //                     for(int f=0; f < 26; f++){
+            //                             // printf("%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97);
+            //                             password_combinations[0] = a + 97;
+            //                             password_combinations[1] = b + 97;
+            //                             password_combinations[2] = c + 97;
+            //                             password_combinations[3] = d + 97;
+            //                             password_combinations[4] = e + 97;
+            //                             password_combinations[5] = f + 97;
+            //                             password_combinations[6] = '\0';
+            //                             check_password(password, password_combinations, salt);
 
-                                    for(int g=0; g < 26; g++){
-                                            // printf("%c%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97, g + 97);
-                                            password_combinations[0] = a + 97;
-                                            password_combinations[1] = b + 97;
-                                            password_combinations[2] = c + 97;
-                                            password_combinations[3] = d + 97;
-                                            password_combinations[4] = e + 97;
-                                            password_combinations[5] = f + 97;
-                                            password_combinations[6] = g + 97;
-                                            password_combinations[7] = '\0';
-                                            check_password(password, password_combinations, salt);
+            //                         for(int g=0; g < 26; g++){
+            //                                 // printf("%c%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97, g + 97);
+            //                                 password_combinations[0] = a + 97;
+            //                                 password_combinations[1] = b + 97;
+            //                                 password_combinations[2] = c + 97;
+            //                                 password_combinations[3] = d + 97;
+            //                                 password_combinations[4] = e + 97;
+            //                                 password_combinations[5] = f + 97;
+            //                                 password_combinations[6] = g + 97;
+            //                                 password_combinations[7] = '\0';
+            //                                 check_password(password, password_combinations, salt);
 
-                                        for(int h=0; h < 26; h++){
-                                            // printf("%c%c%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97, g + 97, h + 97);
-                                            password_combinations[0] = a + 97;
-                                            password_combinations[1] = b + 97;
-                                            password_combinations[2] = c + 97;
-                                            password_combinations[3] = d + 97;
-                                            password_combinations[4] = e + 97;
-                                            password_combinations[5] = f + 97;
-                                            password_combinations[6] = g + 97;
-                                            password_combinations[7] = h + 97;
-                                            password_combinations[8] = '\0';
+            //                             for(int h=0; h < 26; h++){
+            //                                 // printf("%c%c%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97, g + 97, h + 97);
+            //                                 password_combinations[0] = a + 97;
+            //                                 password_combinations[1] = b + 97;
+            //                                 password_combinations[2] = c + 97;
+            //                                 password_combinations[3] = d + 97;
+            //                                 password_combinations[4] = e + 97;
+            //                                 password_combinations[5] = f + 97;
+            //                                 password_combinations[6] = g + 97;
+            //                                 password_combinations[7] = h + 97;
+            //                                 password_combinations[8] = '\0';
 
-                                            check_password(password, password_combinations, salt);
-                                            // sleep(1);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            //                                 check_password(password, password_combinations, salt);
+            //                                 // sleep(1);
+            //                             }
+            //                         }
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
         }
 
         // // get all permutations of alphabets
@@ -356,93 +448,101 @@ int main(int argc, char** argv) {
         // #pragma omp parallel num_threads(2) 
         // {
         //     if (omp_get_thread_num() == 1){
-                for (int a = start_offset; a < start_offset + a_size; a++){
-                    // printf("%c\n", a + 97);
+
+            crack_password(start_offset, a_size, temp_password, temp_salt);
+
+                // for (int a = start_offset; a < start_offset + a_size; a++){
+                //     // printf("%c\n", a + 97);
                     
-                    password_combinations[0] = a + 97;
-                    password_combinations[1] = '\0';
-                    check_password(temp_password, password_combinations, temp_salt);
+                //     password_combinations[0] = a + 97;
+                //     password_combinations[1] = '\0';
+                //     check_password(temp_password, password_combinations, temp_salt);
 
-                    for(int b=0; b < 26; b++){
-                        // printf("%c%c\n", a + 97, b + 97);
+                //     for(int b=0; b < 26; b++){
+                //         // printf("%c%c\n", a + 97, b + 97);
                         
-                        password_combinations[0] = a + 97;
-                        password_combinations[1] = b + 97;
-                        password_combinations[2] = '\0';
-                        check_password(temp_password, password_combinations, temp_salt);
+                //         password_combinations[0] = a + 97;
+                //         password_combinations[1] = b + 97;
+                //         password_combinations[2] = '\0';
+                //         check_password(temp_password, password_combinations, temp_salt);
 
-                        for(int c=0; c < 26; c++){
-                            // printf("%c%c%c\n", a + 97, b + 97, c + 97);
-                            password_combinations[0] = a + 97;
-                            password_combinations[1] = b + 97;
-                            password_combinations[2] = c + 97;
-                            password_combinations[3] = '\0';
-                            check_password(temp_password, password_combinations, temp_salt);
+                //         for(int c=0; c < 26; c++){
+                //             // printf("%c%c%c\n", a + 97, b + 97, c + 97);
+                //             password_combinations[0] = a + 97;
+                //             password_combinations[1] = b + 97;
+                //             password_combinations[2] = c + 97;
+                //             password_combinations[3] = '\0';
+                //             check_password(temp_password, password_combinations, temp_salt);
                             
-                            for(int d=0; d < 26; d++){
-                                    // printf("%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97);
-                                    password_combinations[0] = a + 97;
-                                    password_combinations[1] = b + 97;
-                                    password_combinations[2] = c + 97;
-                                    password_combinations[3] = d + 97;
-                                    password_combinations[4] = '\0';
-                                    check_password(temp_password, password_combinations, temp_salt);
+                //             for(int d=0; d < 26; d++){
+                //                     // printf("%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97);
+                //                     password_combinations[0] = a + 97;
+                //                     password_combinations[1] = b + 97;
+                //                     password_combinations[2] = c + 97;
+                //                     password_combinations[3] = d + 97;
+                //                     password_combinations[4] = '\0';
+                //                     check_password(temp_password, password_combinations, temp_salt);
                                     
-                                for(int e=0; e < 26; e++){
-                                        // printf("%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97);
-                                        password_combinations[0] = a + 97;
-                                        password_combinations[1] = b + 97;
-                                        password_combinations[2] = c + 97;
-                                        password_combinations[3] = d + 97;
-                                        password_combinations[4] = e + 97;
-                                        password_combinations[5] = '\0';
-                                        check_password(temp_password, password_combinations, temp_salt);
+                //                 for(int e=0; e < 26; e++){
+                //                         // printf("%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97);
+                //                         password_combinations[0] = a + 97;
+                //                         password_combinations[1] = b + 97;
+                //                         password_combinations[2] = c + 97;
+                //                         password_combinations[3] = d + 97;
+                //                         password_combinations[4] = e + 97;
+                //                         password_combinations[5] = '\0';
+                //                         check_password(temp_password, password_combinations, temp_salt);
                                         
-                                    for(int f=0; f < 26; f++){
-                                            // printf("%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97);
-                                            password_combinations[0] = a + 97;
-                                            password_combinations[1] = b + 97;
-                                            password_combinations[2] = c + 97;
-                                            password_combinations[3] = d + 97;
-                                            password_combinations[4] = e + 97;
-                                            password_combinations[5] = f + 97;
-                                            password_combinations[6] = '\0';
-                                            check_password(temp_password, password_combinations, temp_salt);
+                //                     for(int f=0; f < 26; f++){
+                //                             // printf("%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97);
+                //                             password_combinations[0] = a + 97;
+                //                             password_combinations[1] = b + 97;
+                //                             password_combinations[2] = c + 97;
+                //                             password_combinations[3] = d + 97;
+                //                             password_combinations[4] = e + 97;
+                //                             password_combinations[5] = f + 97;
+                //                             password_combinations[6] = '\0';
+                //                             check_password(temp_password, password_combinations, temp_salt);
 
-                                        for(int g=0; g < 26; g++){
-                                                // printf("%c%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97, g + 97);
-                                                password_combinations[0] = a + 97;
-                                                password_combinations[1] = b + 97;
-                                                password_combinations[2] = c + 97;
-                                                password_combinations[3] = d + 97;
-                                                password_combinations[4] = e + 97;
-                                                password_combinations[5] = f + 97;
-                                                password_combinations[6] = g + 97;
-                                                password_combinations[7] = '\0';
-                                                check_password(temp_password, password_combinations, temp_salt);
+                //                         for(int g=0; g < 26; g++){
+                //                                 // printf("%c%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97, g + 97);
+                //                                 password_combinations[0] = a + 97;
+                //                                 password_combinations[1] = b + 97;
+                //                                 password_combinations[2] = c + 97;
+                //                                 password_combinations[3] = d + 97;
+                //                                 password_combinations[4] = e + 97;
+                //                                 password_combinations[5] = f + 97;
+                //                                 password_combinations[6] = g + 97;
+                //                                 password_combinations[7] = '\0';
+                //                                 check_password(temp_password, password_combinations, temp_salt);
 
-                                            for(int h=0; h < 26; h++){
-                                                // printf("%c%c%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97, g + 97, h + 97);
-                                                password_combinations[0] = a + 97;
-                                                password_combinations[1] = b + 97;
-                                                password_combinations[2] = c + 97;
-                                                password_combinations[3] = d + 97;
-                                                password_combinations[4] = e + 97;
-                                                password_combinations[5] = f + 97;
-                                                password_combinations[6] = g + 97;
-                                                password_combinations[7] = h + 97;
-                                                password_combinations[8] = '\0';
+                //                             for(int h=0; h < 26; h++){
+                //                                 // printf("%c%c%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97, g + 97, h + 97);
+                //                                 password_combinations[0] = a + 97;
+                //                                 password_combinations[1] = b + 97;
+                //                                 password_combinations[2] = c + 97;
+                //                                 password_combinations[3] = d + 97;
+                //                                 password_combinations[4] = e + 97;
+                //                                 password_combinations[5] = f + 97;
+                //                                 password_combinations[6] = g + 97;
+                //                                 password_combinations[7] = h + 97;
+                //                                 password_combinations[8] = '\0';
 
-                                                check_password(temp_password, password_combinations, temp_salt);
-                                                // sleep(1);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                //                                 check_password(temp_password, password_combinations, temp_salt);
+                //                                 // sleep(1);
+                //                             }
+                //                         }
+                //                     }
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
+
+
+
+
+
                 // int toReturn = -1;
                 // MPI_Send(&toReturn, 1, MPI_INT, 1, 2, MPI_COMM_WORLD);
             // }
