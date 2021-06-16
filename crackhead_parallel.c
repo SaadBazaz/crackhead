@@ -4,8 +4,8 @@
 #include <time.h>
 #include <string.h>
 
-#include <mpi.h>
 #include <omp.h>
+#include <mpi.h>
 
 #ifdef __linux__ 
     //linux code goes here
@@ -57,11 +57,13 @@ char* readFile(char* filename){
 
 
 char* get_password_salt(char* password){
+    char* temp = (char*)malloc(100*sizeof(char));
+    strcpy(temp, password);
     char* toReturn = (char*)malloc(50*sizeof(char));
     toReturn[0] = '$';
 
     // tokenize words wrt '$'
-    char* first = strtok(password, "$");
+    char* first = strtok(temp, "$");
     char* second = strtok(NULL, "$");
 
     // conactinate inorder to form proper salt
@@ -70,7 +72,7 @@ char* get_password_salt(char* password){
     strcat(toReturn, second);
     strcat(toReturn, "$");
 
-    return  toReturn;
+    return toReturn;
 }
 
 
@@ -94,9 +96,11 @@ void permute(char* a, int l, int r, char* password)
     int i;
     if (l == r){
 
+        printf("%s\n", a);
+        // sleep(2);
         if (strlen(a) < 8) {
             // char *salt = (char*)malloc(50*sizeof(char));
-            char* salt = get_password_salt(salt);
+            char* salt = get_password_salt(password);
             char* encrypted = crypt(a, salt);
 
             printf("Ans: %s, Encrypted: %s, with Salt: %s\n", a, encrypted, salt);
@@ -106,6 +110,7 @@ void permute(char* a, int l, int r, char* password)
             }
         }
     }
+
     else {
         for (i = l; i <= r; i++) {
             swap((a + l), (a + i));
@@ -118,14 +123,15 @@ void permute(char* a, int l, int r, char* password)
 
 void crack_password(char* password){
     // generate alphabets array
-    char alphabets[27];
-    for(int i = 0; i < 26; i++){
-        alphabets[i] = 97 + i;
+    char alphabets[9];
+    for(int i = 0; i < 8; i++){
+        // alphabets[i] = 97 + i;
+        alphabets[i] = 97;
     }
-    alphabets[26] = '\0';
+    alphabets[8] = '\0';
 
     // generate all permuatations
-    permute(alphabets, 0, 26, password);
+    permute(alphabets, 0, 8 , password);
 }
 
 
@@ -152,6 +158,22 @@ char* extractHashedPassword(char* user_name){
         }
         token = strtok(NULL, ":");
     }
+    return "";
+}
+
+
+int check_password(char* asli_pass, char* nakli_pass, char* salt){
+    char* encrypted = crypt(nakli_pass, salt);
+    printf("Real: %s | %li\nCalc: %s | %li\nPassword: %s | %li\nSalt: %s | %li\n\n", asli_pass, strlen(asli_pass), encrypted, strlen(encrypted), salt, strlen(salt), nakli_pass, strlen(nakli_pass));
+
+    if (strcmp(asli_pass, encrypted) == 0){
+        printf("CRACKED....\nPassword is: %s\n", nakli_pass);
+        int toReturn = 1;
+        MPI_Send(&toReturn, 1, MPI_INT, 1, 2, MPI_COMM_WORLD);
+        // MPI_Abort(MPI_COMM_WORLD, -1);
+        // exit(1);
+    }
+    return 0;
 }
 
 
@@ -164,10 +186,12 @@ int main(int argc, char** argv) {
     // char salt[] = "$6$NGWhf/sJZ2Jgxbch$";
     // char *encrypted = crypt(id, salt);
 
-    int dividedArraySize, offset = 0;
+    int dividedArraySize, start_offset = 0, end_offset = 0, a_size = 0;
+    int* shugal = (int*)malloc(1*sizeof(int));
     char* user_name = (char*)malloc(25*sizeof(char));
-    char* password = ;
-    char **password_combinations;
+    char* password = (char*)malloc(256*sizeof(char));
+    char* salt = (char*)malloc(50*sizeof(char));
+    char *password_combinations = (char*)malloc(8*sizeof(char));
 
     int myrank, nprocs, nworkers, i;
     MPI_Init(&argc, &argv);
@@ -176,9 +200,9 @@ int main(int argc, char** argv) {
     nworkers = nprocs - 1;
 
     // exit if number of processes is less than 2
-    if (nprocs < 1) {
+    if (nprocs <= 1) {
         printf("Need at least two MPI tasks. Quitting...\n");
-        MPI_Abort(MPI_COMM_WORLD, rc);
+        MPI_Abort(MPI_COMM_WORLD, -1);
         exit(1);
     }
 
@@ -199,18 +223,28 @@ int main(int argc, char** argv) {
         user_name[strlen(user_name) - 1] = '\0';
 
         // get hased password from file
-        password = (extractHashedPassword(user_name));
+        password = extractHashedPassword(user_name);
+        password[strlen(password)] = '\0';
+        // get salt
+        salt = get_password_salt(password);
         printf("Password Mastiii: %s\n<-------------------------------------------------------------------->\n", password);
 
         // Exit if username not found in the shadows file
         if (password == NULL) {
-            printf("Error: Username \"%s\" not found.\n\n", user_name);
+            printf("Error: Username not found.\n\n");
             MPI_Abort(MPI_COMM_WORLD, -1);
             exit(1);
         }
 
-
-        MPI_Send(&offset, 1, MPI_INT, i, 1, MPI_COMM_WORLD);
+        a_size = 26 / nworkers;
+        start_offset = 0;
+        for(int i=1; i <= nworkers; i++){
+            MPI_Send(password, 256, MPI_CHAR, i, 1, MPI_COMM_WORLD);
+            MPI_Send(salt, 50, MPI_CHAR, i, 1, MPI_COMM_WORLD);
+            MPI_Send(&start_offset, 1, MPI_INT, i, 1, MPI_COMM_WORLD);
+            MPI_Send(&a_size, 1, MPI_INT, i, 1, MPI_COMM_WORLD);
+            start_offset += a_size;
+        }
 
         // // get all permutations of alphabets
         // crack_password(password);
@@ -220,48 +254,119 @@ int main(int argc, char** argv) {
     // SLAVE PROCESSES 
     else {
         // recieve the array and data
-        int toReturn = 0;
-        // MPI_Recv(&password, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
-        MPI_Recv(&offset, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
+        char* temp_password = (char*)malloc(256*sizeof(char));
+        char* temp_salt = (char*)malloc(50*sizeof(char));
+        MPI_Recv(temp_password, 256, MPI_CHAR, 0, 1, MPI_COMM_WORLD, &status);
+        MPI_Recv(temp_salt, 50, MPI_CHAR, 0, 1, MPI_COMM_WORLD, &status);
+        MPI_Recv(&start_offset, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
+        MPI_Recv(&a_size, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
 
-        printf("THIS IS %i\n", offset);
+        // printf("Rank: %i with %s\n", myrank, password_combinations);
+        #pragma omp parallel num_threads(2) 
+        {
+            if (omp_get_thread_num() == 1){
+                for (int a = start_offset; a < start_offset + a_size; a++){
+                    // printf("%c\n", a + 97);
+                    
+                    password_combinations[0] = a + 97;
+                    password_combinations[1] = '\0';
+                    check_password(temp_password, password_combinations, temp_salt);
 
-        // MPI_Recv(&dividedArraySize, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
-        // MPI_Recv(&password_combinations, dividedArraySize, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
+                    for(int b=0; b < 26; b++){
+                        // printf("%c%c\n", a + 97, b + 97);
+                        
+                        password_combinations[0] = a + 97;
+                        password_combinations[1] = b + 97;
+                        password_combinations[2] = '\0';
+                        check_password(temp_password, password_combinations, temp_salt);
 
-        // #pragma omp parallel num_threads(2) 
-        // {
-        //     // multithread slave for searching array and listening from master
-        //     if (omp_get_thread_num() == 1){
-        //         printf("Process \"%i\" is searching\n", rank);
-        //         //linear search the array to find the answer
-        //         for(int i = 0; i < dividedArraySize; i++) {
+                        for(int c=0; c < 26; c++){
+                            // printf("%c%c%c\n", a + 97, b + 97, c + 97);
+                            password_combinations[0] = a + 97;
+                            password_combinations[1] = b + 97;
+                            password_combinations[2] = c + 97;
+                            password_combinations[3] = '\0';
+                            check_password(temp_password, password_combinations, temp_salt);
+                            
+                            for(int d=0; d < 26; d++){
+                                    // printf("%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97);
+                                    password_combinations[0] = a + 97;
+                                    password_combinations[1] = b + 97;
+                                    password_combinations[2] = c + 97;
+                                    password_combinations[3] = d + 97;
+                                    password_combinations[4] = '\0';
+                                    check_password(temp_password, password_combinations, temp_salt);
+                                    
+                                for(int e=0; e < 26; e++){
+                                        // printf("%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97);
+                                        password_combinations[0] = a + 97;
+                                        password_combinations[1] = b + 97;
+                                        password_combinations[2] = c + 97;
+                                        password_combinations[3] = d + 97;
+                                        password_combinations[4] = e + 97;
+                                        password_combinations[5] = '\0';
+                                        check_password(temp_password, password_combinations, temp_salt);
+                                        
+                                    for(int f=0; f < 26; f++){
+                                            // printf("%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97);
+                                            password_combinations[0] = a + 97;
+                                            password_combinations[1] = b + 97;
+                                            password_combinations[2] = c + 97;
+                                            password_combinations[3] = d + 97;
+                                            password_combinations[4] = e + 97;
+                                            password_combinations[5] = f + 97;
+                                            password_combinations[6] = '\0';
+                                            check_password(temp_password, password_combinations, temp_salt);
 
-        //             char* salt = get_password_salt(salt);
-        //             char* encrypted = crypt(password_combinations[i], salt);
+                                        for(int g=0; g < 26; g++){
+                                                // printf("%c%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97, g + 97);
+                                                password_combinations[0] = a + 97;
+                                                password_combinations[1] = b + 97;
+                                                password_combinations[2] = c + 97;
+                                                password_combinations[3] = d + 97;
+                                                password_combinations[4] = e + 97;
+                                                password_combinations[5] = f + 97;
+                                                password_combinations[6] = g + 97;
+                                                password_combinations[7] = '\0';
+                                                check_password(temp_password, password_combinations, temp_salt);
 
-        //             printf("Ans: %s, Encrypted: %s, with Salt: %s\n", a, encrypted, salt);
-        //             if (strcmp(password, encrypted) == 0){
-        //                 toReturn = 1;
-        //                 printf("Process \"%i\" found item %i on place [%i]\n", rank, toSearch, i+offset);
-        //                 MPI_Send(&toReturn, 1, MPI_INT, 0, 2, MPI_COMM_WORLD);
-        //                 // printf("FOUND IT\n");
-        //                 // exit(0);
-        //             }
-        //         }
-        //         // printf("Process \"%i\" couldn't find the answer\n", rank);
-        //         toReturn = -1;
-        //         MPI_Send(&toReturn, 1, MPI_INT, 0, 2, MPI_COMM_WORLD);
+                                            for(int h=0; h < 26; h++){
+                                                // printf("%c%c%c%c%c%c%c%c\n", a + 97, b + 97, c + 97, d + 97, e + 97, f + 97, g + 97, h + 97);
+                                                password_combinations[0] = a + 97;
+                                                password_combinations[1] = b + 97;
+                                                password_combinations[2] = c + 97;
+                                                password_combinations[3] = d + 97;
+                                                password_combinations[4] = e + 97;
+                                                password_combinations[5] = f + 97;
+                                                password_combinations[6] = g + 97;
+                                                password_combinations[7] = h + 97;
+                                                password_combinations[8] = '\0';
 
-        //     } else if (omp_get_thread_num() == 0){
-        //         // recieve abort message from master and exit
-        //         MPI_Recv(&abortSearch, 1, MPI_INT, 0, 3, MPI_COMM_WORLD, &status);
-        //         if (abortSearch == 1) {
-        //             printf("Process %i is ABORTING\n", rank);
-        //             exit(1);
-        //         }
-        //     }
-        // }
+                                                check_password(temp_password, password_combinations, temp_salt);
+
+                                                sleep(1);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                int toReturn = -1;
+                MPI_Send(&toReturn, 1, MPI_INT, 1, 2, MPI_COMM_WORLD);
+            }
+
+            else {
+                int abortSearch = 0;
+                // recieve abort message from master and exit
+                MPI_Recv(&abortSearch, 1, MPI_INT, 1, 2, MPI_COMM_WORLD, &status);
+                if (abortSearch == 1) {
+                    printf("Process %i is ABORTING\n", myrank);
+                    exit(1);
+                }
+            }
+        }
     }
 
 //     // We are in the Master process
