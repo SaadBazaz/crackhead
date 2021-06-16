@@ -169,9 +169,9 @@ int check_password(char* asli_pass, char* nakli_pass, char* salt){
     if (strcmp(asli_pass, encrypted) == 0){
         printf("CRACKED....\nPassword is: %s\n", nakli_pass);
         int toReturn = 1;
-        MPI_Send(&toReturn, 1, MPI_INT, 1, 2, MPI_COMM_WORLD);
-        // MPI_Abort(MPI_COMM_WORLD, -1);
-        // exit(1);
+        // MPI_Send(&toReturn, 1, MPI_INT, 1, 2, MPI_COMM_WORLD);
+        MPI_Abort(MPI_COMM_WORLD, -1);
+        exit(1);
     }
     return 0;
 }
@@ -248,7 +248,6 @@ int main(int argc, char** argv) {
 
         // // get all permutations of alphabets
         // crack_password(password);
-
     }
 
     // SLAVE PROCESSES 
@@ -261,10 +260,10 @@ int main(int argc, char** argv) {
         MPI_Recv(&start_offset, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
         MPI_Recv(&a_size, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
 
-        // printf("Rank: %i with %s\n", myrank, password_combinations);
-        #pragma omp parallel num_threads(2) 
-        {
-            if (omp_get_thread_num() == 1){
+        // // printf("Rank: %i with %s\n", myrank, password_combinations);
+        // #pragma omp parallel num_threads(2) 
+        // {
+        //     if (omp_get_thread_num() == 1){
                 for (int a = start_offset; a < start_offset + a_size; a++){
                     // printf("%c\n", a + 97);
                     
@@ -343,8 +342,7 @@ int main(int argc, char** argv) {
                                                 password_combinations[8] = '\0';
 
                                                 check_password(temp_password, password_combinations, temp_salt);
-
-                                                sleep(1);
+                                                // sleep(1);
                                             }
                                         }
                                     }
@@ -353,20 +351,20 @@ int main(int argc, char** argv) {
                         }
                     }
                 }
-                int toReturn = -1;
-                MPI_Send(&toReturn, 1, MPI_INT, 1, 2, MPI_COMM_WORLD);
-            }
+                // int toReturn = -1;
+                // MPI_Send(&toReturn, 1, MPI_INT, 1, 2, MPI_COMM_WORLD);
+            // }
 
-            else {
-                int abortSearch = 0;
-                // recieve abort message from master and exit
-                MPI_Recv(&abortSearch, 1, MPI_INT, 1, 2, MPI_COMM_WORLD, &status);
-                if (abortSearch == 1) {
-                    printf("Process %i is ABORTING\n", myrank);
-                    exit(1);
-                }
-            }
-        }
+            // else {
+            //     int abortSearch = 0;
+            //     // recieve abort message from master and exit
+            //     MPI_Recv(&abortSearch, 1, MPI_INT, 1, 2, MPI_COMM_WORLD, &status);
+            //     if (abortSearch == 1) {
+            //         printf("Process %i is ABORTING\n", myrank);
+            //         exit(1);
+            //     }
+            // }
+        // }
     }
 
 //     // We are in the Master process
