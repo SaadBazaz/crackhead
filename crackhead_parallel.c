@@ -349,7 +349,7 @@ int main(int argc, char** argv) {
         if (mod > 0) {
             int new_size = 26 % nworkers;
             printf("Master doin work with %i passwords\n", a_size);
-            sleep(3);
+            sleep(1);
 
             crack_password(start_offset, new_size, password, salt);
         }
