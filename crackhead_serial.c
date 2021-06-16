@@ -158,6 +158,11 @@ int main(void)
     char* password = (extractHashedPassword(user_name));
     printf("Password Mastiii: %s\n<---------------------------------------------------->\n", password);
 
+    if (password == NULL) {
+        printf("Error: Username \"%s\" not found.\n", user_name);
+        return(-1);
+    }
+
     // get all permutations of alphabets
     crack_password(password);
 }

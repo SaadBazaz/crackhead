@@ -55,6 +55,25 @@ char* readFile(char* filename){
     return toReturn;
 }
 
+
+char* get_password_salt(char* password){
+    char* toReturn = (char*)malloc(50*sizeof(char));
+    toReturn[0] = '$';
+
+    // tokenize words wrt '$'
+    char* first = strtok(password, "$");
+    char* second = strtok(NULL, "$");
+
+    // conactinate inorder to form proper salt
+    strcat(toReturn, first);
+    strcat(toReturn, "$");
+    strcat(toReturn, second);
+    strcat(toReturn, "$");
+
+    return  toReturn;
+}
+
+
 /* Function to swap values at two pointers */
 void swap(char* x, char* y)
 {
@@ -63,6 +82,7 @@ void swap(char* x, char* y)
     *x = *y;
     *y = temp;
 }
+
 
 /* Function to print permutations of string
    This function takes three parameters:
@@ -75,17 +95,16 @@ void permute(char* a, int l, int r, char* password)
     if (l == r){
 
         if (strlen(a) < 8) {
-            // a random string?
-            char salt[] = "$6$NGWhf/sJZ2Jgxbch$";
-            char *encrypted = crypt(a, salt);
+            // char *salt = (char*)malloc(50*sizeof(char));
+            char* salt = get_password_salt(salt);
+            char* encrypted = crypt(a, salt);
 
-            printf("Ans: %s, Encrypted: %s\n", a, encrypted);
+            printf("Ans: %s, Encrypted: %s, with Salt: %s\n", a, encrypted, salt);
             if (strcmp(password, encrypted) == 0){
                 printf("FOUND IT\n");
                 exit(0);
             }
         }
-        // sleep(3);
     }
     else {
         for (i = l; i <= r; i++) {
@@ -105,6 +124,7 @@ void crack_password(char* password){
     }
     alphabets[26] = '\0';
 
+    // generate all permuatations
     permute(alphabets, 0, 26, password);
 }
 
@@ -114,29 +134,25 @@ char* extractHashedPassword(char* user_name){
     // read all file data
     char* file_details = readFile("/etc/shadow");
     
-    // printf("%s", file_details);
+    // initalize variables
     char* name_array = (char*)malloc(256*sizeof(char));
     char* password = (char*)malloc(256*sizeof(char));
     int temp_counter = 0; int file_counter = 0; 
 
-
+    // tokenize file wrt to lines
     char* token = strtok(file_details, "\n");
     while (token) {
         token = token + '\0';
         int cc = 0;
         
-        // printf("%s-%s-%i-%li-%li\n", token, "zohair", strcmp("\nzohair", token), strlen(token), strlen("\nzohair"));
+        // extract password from next token
         if (strcmp(user_name, token) == 0){
             token = strtok(NULL, ":");
-            // printf("Password Mastiii: %s\n", token);
             return token;
         }
         token = strtok(NULL, ":");
     }
 }
-
-// ---------------- Helper Functions ----------------
-
 
 
 // To hold the status of MPI_Recv
@@ -144,45 +160,110 @@ MPI_Status status;
 
 int main(int argc, char** argv) {
 
-//   printf("mpiuser");
+    // char id[] = "abcdefghijklmnopqrstuvwxyz";
+    // char salt[] = "$6$NGWhf/sJZ2Jgxbch$";
+    // char *encrypted = crypt(id, salt);
 
-    // ------------------ Initial work
-    // a password string we'll randomly guess
-    char id[] = "abcdefghijklmnopqrstuvwxyz";
+    int dividedArraySize, offset = 0;
     char* user_name = (char*)malloc(25*sizeof(char));
+    char* password = ;
+    char **password_combinations;
 
-    // a random string?
-    char salt[] = "$6$NGWhf/sJZ2Jgxbch$";
-    char *encrypted = crypt(id, salt);
-    // printf("%s\n",encrypted);
-
-    // input username
-    printf("Enter username\n");
- //   fgets(user_name, 25, stdin);
-
-    // add '\n' to user name for string matching (CHAPPI)
-    char temp;
-    for(int i = strlen(user_name) - 1; i > -1; i--){
-        user_name[i + 1] = user_name[i];
-    }
-    user_name[0] = '\n';
-    user_name[strlen(user_name) - 1] = '\0';
-
-    // get hased password from file
-    char* password = (extractHashedPassword("\nmpiuser"));
-    printf("Password Mastiii: %s\n<---------------------------------------------------->\n", password);
-    // ------------------ Initial work
-
-
-    int myrank, nprocs, i;
-
+    int myrank, nprocs, nworkers, i;
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-    
+    nworkers = nprocs - 1;
 
-    // get all permutations of alphabets
-    crack_password(password);
+    // exit if number of processes is less than 2
+    if (nprocs < 1) {
+        printf("Need at least two MPI tasks. Quitting...\n");
+        MPI_Abort(MPI_COMM_WORLD, rc);
+        exit(1);
+    }
+
+    // MASTER PROCESS
+    if (myrank == 0) {
+        printf("\n---------------------------------\nAuthors:\n*Zohair Hadi, 18i-0671*\n*Mahrukh Waqar, 18i-0000*\n*Abdurehman Subahni, 18i-0000*\n*Saad Ahmed, 18i-0000*\n---------------------------------\n\n");
+
+        // input username
+        printf("Enter User Name: ");
+        fgets(user_name, 25, stdin);
+
+        // add '\n' to user name for string matching (CHAPPI)
+        char temp;
+        for(int i = strlen(user_name) - 1; i > -1; i--){
+            user_name[i + 1] = user_name[i];
+        }
+        user_name[0] = '\n';
+        user_name[strlen(user_name) - 1] = '\0';
+
+        // get hased password from file
+        password = (extractHashedPassword(user_name));
+        printf("Password Mastiii: %s\n<-------------------------------------------------------------------->\n", password);
+
+        // Exit if username not found in the shadows file
+        if (password == NULL) {
+            printf("Error: Username \"%s\" not found.\n\n", user_name);
+            MPI_Abort(MPI_COMM_WORLD, -1);
+            exit(1);
+        }
+
+
+        MPI_Send(&offset, 1, MPI_INT, i, 1, MPI_COMM_WORLD);
+
+        // // get all permutations of alphabets
+        // crack_password(password);
+
+    }
+
+    // SLAVE PROCESSES 
+    else {
+        // recieve the array and data
+        int toReturn = 0;
+        // MPI_Recv(&password, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
+        MPI_Recv(&offset, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
+
+        printf("THIS IS %i\n", offset);
+
+        // MPI_Recv(&dividedArraySize, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
+        // MPI_Recv(&password_combinations, dividedArraySize, MPI_INT, 0, 1, MPI_COMM_WORLD, &status);
+
+        // #pragma omp parallel num_threads(2) 
+        // {
+        //     // multithread slave for searching array and listening from master
+        //     if (omp_get_thread_num() == 1){
+        //         printf("Process \"%i\" is searching\n", rank);
+        //         //linear search the array to find the answer
+        //         for(int i = 0; i < dividedArraySize; i++) {
+
+        //             char* salt = get_password_salt(salt);
+        //             char* encrypted = crypt(password_combinations[i], salt);
+
+        //             printf("Ans: %s, Encrypted: %s, with Salt: %s\n", a, encrypted, salt);
+        //             if (strcmp(password, encrypted) == 0){
+        //                 toReturn = 1;
+        //                 printf("Process \"%i\" found item %i on place [%i]\n", rank, toSearch, i+offset);
+        //                 MPI_Send(&toReturn, 1, MPI_INT, 0, 2, MPI_COMM_WORLD);
+        //                 // printf("FOUND IT\n");
+        //                 // exit(0);
+        //             }
+        //         }
+        //         // printf("Process \"%i\" couldn't find the answer\n", rank);
+        //         toReturn = -1;
+        //         MPI_Send(&toReturn, 1, MPI_INT, 0, 2, MPI_COMM_WORLD);
+
+        //     } else if (omp_get_thread_num() == 0){
+        //         // recieve abort message from master and exit
+        //         MPI_Recv(&abortSearch, 1, MPI_INT, 0, 3, MPI_COMM_WORLD, &status);
+        //         if (abortSearch == 1) {
+        //             printf("Process %i is ABORTING\n", rank);
+        //             exit(1);
+        //         }
+        //     }
+        // }
+    }
+
 //     // We are in the Master process
 //     if (myrank == 0){
 
