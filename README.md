@@ -7,6 +7,7 @@ Simple password cracker
 
 ### Linux
 ```gcc -lcrypt ./crackhead_serial.c```
+Use ```sudo``` while comipling the source file
 
 ## Resources
 
