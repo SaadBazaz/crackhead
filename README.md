@@ -10,8 +10,8 @@ This project uses MPI to alphabtically divided password combinations to worker p
 ```gcc ./crackhead_serial.c```
 
 ### Linux
-1. Compile: ```gcc -lcrypt ./crackhead_serial.c ```
-2. Run:  ```sudo``` while comipling the source file
+1. Compile: ```gcc -lcrypt ./crackhead_serial.c cryptS```
+2. Run:  ```sudo ./cryptS```
 
 ## Resources
 ### Saad
